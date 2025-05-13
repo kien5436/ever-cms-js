@@ -1,0 +1,43 @@
+services:
+  mongo:
+    image: mongo:8.0.9
+    container_name: lmm-db
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: $MONGO_INITDB_ROOT_USERNAME
+      MONGO_INITDB_ROOT_PASSWORD: $MONGO_INITDB_ROOT_PASSWORD
+      MONGO_INITDB_DATABASE: $MONGO_INITDB_DATABASE
+    security_opt:
+      - seccomp:unconfined
+    ports:
+      - '27017:27017'
+    networks:
+      - MONGO
+    volumes:
+      - LMM_MONGO_DATA:/data/db
+      - LMM_MONGO_CONFIG:/data/configdb
+  nestjs:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        PORT: $PORT
+    container_name: lmm-be
+    env_file: .env
+    ports:
+      - '${PORT}:${PORT}'
+    depends_on:
+      - mongo
+    volumes:
+      - .:/usr/src/app
+    networks:
+      - MONGO
+
+networks:
+  MONGO:
+    name: mongo_mongo
+
+volumes:
+  LMM_MONGO_DATA:
+    name: LMM_MONGO_DATA
+  LMM_MONGO_CONFIG:
+    name: LMM_MONGO_CONFIG
