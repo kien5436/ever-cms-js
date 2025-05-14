@@ -40,7 +40,7 @@ export class LoggerService implements NestLoggerService {
       format.colorize(),
       format.printf((info) => {
 
-        const message = stringify(info.message as unknown[]);
+        const message = stringify(...info.message as unknown[]);
 
         return `${info.timestamp as string} - ${info.level}: [${info.context as string}] ${message} ${info.ms as string}`;
       }),
