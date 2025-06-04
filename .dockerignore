@@ -1,0 +1,15 @@
+*
+
+# Allow files and directories
+!src
+!eslint.config.mjs
+!nest-cli.json
+!package.json
+!pnpm-lock.yaml
+!tsconfig*.json
+
+# Ignore unnecessary files inside allowed directories
+**/*~
+**/*.log
+**/.DS_Store
+**/Thumbs.db

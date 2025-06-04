@@ -1,0 +1,57 @@
+services:
+  mongo:
+    image: mongo:8.0.9
+    container_name: ec-db
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: $MONGO_INITDB_ROOT_USERNAME
+      MONGO_INITDB_ROOT_PASSWORD: $MONGO_INITDB_ROOT_PASSWORD
+      MONGO_INITDB_DATABASE: $MONGO_INITDB_DATABASE
+    security_opt:
+      - seccomp:unconfined
+    ports:
+      - '27017:27017'
+    volumes:
+      - EC_MONGO_DATA:/data/db
+      - EC_MONGO_CONFIG:/data/configdb
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
+    restart: always
+  nestjs:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        PORT: $PORT
+    container_name: ec-be
+    env_file: .env
+    ports:
+      - '${PORT}:${PORT}'
+    depends_on:
+      - mongo
+      - cache
+    volumes:
+      - .:/usr/src/app
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
+    restart: unless-stopped
+  cache:
+    image: redis:8.0.1-alpine3.21
+    container_name: ec-cache
+    ports:
+      - '6379:6379'
+    environment:
+      REDIS_PASSWORD: $REDIS_PASSWORD
+    command: /bin/sh -c "redis-server --save 20 1 --loglevel warning --requirepass $${REDIS_PASSWORD}"
+    volumes:
+      - EC_CACHE_DATA:/data
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
+    restart: always
+
+volumes:
+  EC_MONGO_DATA:
+    name: EC_MONGO_DATA
+  EC_MONGO_CONFIG:
+    name: EC_MONGO_CONFIG
+  EC_CACHE_DATA:
+    name: EC_CACHE_DATA
